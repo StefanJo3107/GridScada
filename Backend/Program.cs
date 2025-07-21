@@ -1,11 +1,23 @@
+using Backend.Database;
+using Backend.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<DatabaseContext>();
+
+//Repositories
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IAnalogInputRepository, AnalogInputRepository>();
+builder.Services.AddSingleton<IDigitalInputRepository, DigitalInputRepository>();
+builder.Services.AddSingleton<IDigitalDataRepository, DigitalDataRepository>();
+builder.Services.AddSingleton<IAnalogDataRepository, AnalogDataRepository>();
+builder.Services.AddSingleton<IAlarmRepository, AlarmRepository>();
+builder.Services.AddSingleton<IAlarmAlertRepository, AlarmAlertRepository>();
+
 
 var app = builder.Build();
 

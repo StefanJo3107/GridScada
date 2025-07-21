@@ -1,6 +1,6 @@
 namespace Backend.Models;
 
-public class AlarmAlert
+public class AlarmAlert : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid AlarmId { get; set; }

@@ -1,6 +1,6 @@
 namespace Backend.Models;
 
-public class AnalogData
+public class AnalogData : IBaseEntity
 {
     public Guid Id { get; set; }
     public AnalogInput AnalogInput { get; set; }

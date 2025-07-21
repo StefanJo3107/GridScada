@@ -1,6 +1,6 @@
 namespace Backend.Models;
 
-public class DigitalData
+public class DigitalData : IBaseEntity
 {
     public Guid Id { get; set; }
     public DigitalInput DigitalInput { get; set; }
