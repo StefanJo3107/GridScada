@@ -1,4 +1,5 @@
 using Backend.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace Backend.Database;
 using Microsoft.EntityFrameworkCore;

@@ -1,3 +1,5 @@
+using System;
+
 namespace Backend.Models;
 
 public class Alarm: IBaseEntity
