@@ -1,8 +1,8 @@
 using Backend.Database;
+using Backend.Infrastructure;
 using Backend.Repositories;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Backend.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +21,25 @@ builder.Services.AddSingleton<IAnalogDataRepository, AnalogDataRepository>();
 builder.Services.AddSingleton<IAlarmRepository, AlarmRepository>();
 builder.Services.AddSingleton<IAlarmAlertRepository, AlarmAlertRepository>();
 
+//Services
+builder.Services.AddSingleton<IUserService, UserService>();
+
+//Security
+builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.Name = "auth";
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        options.Cookie.MaxAge = options.ExpireTimeSpan;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.EventsType = typeof(CustomCookieAuthenticationEvents);
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -31,9 +50,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
+app.UseMiddleware<ExceptionMiddleware>(true);
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHttpsRedirection();
 
 app.MapControllers();
 

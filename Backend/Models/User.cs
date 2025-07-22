@@ -58,4 +58,10 @@ public class User: IBaseEntity
 
         CreatedBy = createdBy;
     }
+    
+    public User()
+    {
+        AnalogInputs = new List<AnalogInput>();
+        DigitalInputs = new List<DigitalInput>();
+    }
 }
