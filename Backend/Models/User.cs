@@ -1,21 +1,7 @@
-using System;
-using System.Collections.Generic;
-
 namespace Backend.Models;
 
-public class User: IBaseEntity
+public class User : IBaseEntity
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public string Surname { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string Role { get; set; }
-    public List<AnalogInput> AnalogInputs { get; set; }
-    public List<DigitalInput> DigitalInputs { get; set; }
-
-    public User? CreatedBy { get; set; }
-
     public User(string name, string surname, string email, string password, string role, User? createdBy)
     {
         Name = name;
@@ -30,14 +16,14 @@ public class User: IBaseEntity
         }
         else
         {
-            AnalogInputs = new List<AnalogInput>();
+            AnalogInputs = new List<AnalogInput?>();
             DigitalInputs = new List<DigitalInput>();
         }
 
         CreatedBy = createdBy;
     }
 
-    public User(Guid id,string name, string surname, string email, string password, string role, User? createdBy)
+    public User(Guid id, string name, string surname, string email, string password, string role, User? createdBy)
     {
         Id = id;
         Name = name;
@@ -52,16 +38,27 @@ public class User: IBaseEntity
         }
         else
         {
-            AnalogInputs = new List<AnalogInput>();
+            AnalogInputs = new List<AnalogInput?>();
             DigitalInputs = new List<DigitalInput>();
         }
 
         CreatedBy = createdBy;
     }
-    
+
     public User()
     {
-        AnalogInputs = new List<AnalogInput>();
+        AnalogInputs = new List<AnalogInput?>();
         DigitalInputs = new List<DigitalInput>();
     }
+
+    public string Name { get; set; }
+    public string Surname { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public string Role { get; set; }
+    public List<AnalogInput?> AnalogInputs { get; set; }
+    public List<DigitalInput> DigitalInputs { get; set; }
+
+    public User? CreatedBy { get; set; }
+    public Guid Id { get; set; }
 }

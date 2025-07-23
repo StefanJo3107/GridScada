@@ -10,16 +10,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<DatabaseContext>();
+builder.Services.AddDbContext<DatabaseContext>(ServiceLifetime.Transient);
 
 //Repositories
-builder.Services.AddSingleton<IUserRepository, UserRepository>();
-builder.Services.AddSingleton<IAnalogInputRepository, AnalogInputRepository>();
-builder.Services.AddSingleton<IDigitalInputRepository, DigitalInputRepository>();
-builder.Services.AddSingleton<IDigitalDataRepository, DigitalDataRepository>();
-builder.Services.AddSingleton<IAnalogDataRepository, AnalogDataRepository>();
-builder.Services.AddSingleton<IAlarmRepository, AlarmRepository>();
-builder.Services.AddSingleton<IAlarmAlertRepository, AlarmAlertRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAnalogInputRepository, AnalogInputRepository>();
+builder.Services.AddScoped<IDigitalInputRepository, DigitalInputRepository>();
+builder.Services.AddScoped<IDigitalDataRepository, DigitalDataRepository>();
+builder.Services.AddScoped<IAnalogDataRepository, AnalogDataRepository>();
+builder.Services.AddScoped<IAlarmRepository, AlarmRepository>();
+builder.Services.AddScoped<IAlarmAlertRepository, AlarmAlertRepository>();
 
 //Services
 builder.Services.AddSingleton<IUserService, UserService>();

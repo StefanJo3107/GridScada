@@ -1,30 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Backend.DTO;
 
 namespace Backend.Models;
 
-public class AnalogInput: ITag
+public class AnalogInput : ITag
 {
-    public Guid Id { get; set; }
-    public string Description { get; set; }
-    public string Driver { get; set; }
-    public string IOAddress { get; set; }
-    public int ScanTime { get; set; }
-    public bool ScanOn { get; set; }
-    public double LowLimit { get; set; }
-    public double HighLimit { get; set; }
-    public string Unit { get; set; }
-    [JsonIgnore]
-    public List<Alarm> Alarms { get; set; }
-    [JsonIgnore]
-    public List<User> Users { get; set; }
-
-
-    public AnalogInput(string description, string driver, string iOAddress, int scanTime, List<Alarm> alarms, bool scanOn, double lowLimit, double highLimit, string unit)
+    public AnalogInput(string description, string iOAddress, int scanTime, List<Alarm> alarms,
+        bool scanOn, double lowLimit, double highLimit, string unit, double value)
     {
         Description = description;
-        Driver = driver;
         IOAddress = iOAddress;
         ScanTime = scanTime;
         Alarms = alarms;
@@ -32,19 +16,46 @@ public class AnalogInput: ITag
         LowLimit = lowLimit;
         HighLimit = highLimit;
         Unit = unit;
+        Value = value;
         Users = new List<User>();
     }
-    
+
+    public AnalogInput(AnalogInputDTO analogInputDTO)
+    {
+        Description = analogInputDTO.Description;
+        ScanTime = analogInputDTO.ScanTime;
+        Alarms = new List<Alarm>();
+        ScanOn = analogInputDTO.ScanOn;
+        LowLimit = analogInputDTO.LowLimit;
+        HighLimit = analogInputDTO.HighLimit;
+        Unit = analogInputDTO.Unit;
+        Users = new List<User>();
+    }
+
     public AnalogInput()
     {
     }
-    
+
+    public string Description { get; set; }
+    public int ScanTime { get; set; }
+    public bool ScanOn { get; set; }
+    public double LowLimit { get; set; }
+    public double HighLimit { get; set; }
+    public string Unit { get; set; }
+
+    [JsonIgnore] public List<Alarm> Alarms { get; set; }
+
+    [JsonIgnore] public List<User> Users { get; set; }
+
+    public Guid Id { get; set; }
+    public string IOAddress { get; set; }
+    public double Value { get; set; }
+
     public override bool Equals(object? obj)
     {
         return obj is AnalogInput input &&
                Id.Equals(input.Id) &&
                Description == input.Description &&
-               Driver == input.Driver &&
                IOAddress == input.IOAddress &&
                ScanTime == input.ScanTime &&
                EqualityComparer<List<Alarm>>.Default.Equals(Alarms, input.Alarms) &&
@@ -57,10 +68,9 @@ public class AnalogInput: ITag
 
     public override int GetHashCode()
     {
-        HashCode hash = new HashCode();
+        var hash = new HashCode();
         hash.Add(Id);
         hash.Add(Description);
-        hash.Add(Driver);
         hash.Add(IOAddress);
         hash.Add(ScanTime);
         hash.Add(Alarms);
@@ -71,5 +81,4 @@ public class AnalogInput: ITag
         hash.Add(Users);
         return hash.ToHashCode();
     }
-
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Backend.Database;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -13,26 +9,25 @@ public class AnalogDataRepository(DatabaseContext context) : CrudRepository<Anal
     public async Task<List<AnalogData>> FindByTagId(Guid id)
     {
         return await Entities
-            .Where(e => e.TagId == id).ToListAsync();
+            .Where(e => e.AnalogInput.Id == id).ToListAsync();
     }
 
-    public async Task<List<AnalogData>> FindByIdByTime(Guid id, DateTime from, DateTime to)
+    public async Task<List<AnalogData>> FindByTagIdByTime(Guid id, DateTime from, DateTime to)
     {
         return await Entities
-            .Where(e => e.TagId == id && e.Timestamp >= from && e.Timestamp <= to)
+            .Where(e => e.AnalogInput.Id == id && e.Timestamp >= from && e.Timestamp <= to)
             .ToListAsync();
-        
     }
 
-    public async Task<AnalogData?> FindLatestById(Guid id)
+    public async Task<AnalogData?> FindLatestByTagId(Guid id)
     {
         return await Entities.OrderByDescending(e => e.Timestamp)
-            .Where(e => e.TagId == id).FirstOrDefaultAsync();
+            .Where(e => e.AnalogInput.Id == id).FirstOrDefaultAsync();
     }
 
     public async Task DeleteByTagId(Guid id)
     {
-        var entities = await Entities.Where(e => e.TagId == id).ToListAsync();
+        var entities = await Entities.Where(e => e.AnalogInput.Id == id).ToListAsync();
         if (entities.Count > 0)
         {
             Entities.RemoveRange(entities);
