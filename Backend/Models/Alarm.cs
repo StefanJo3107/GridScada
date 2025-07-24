@@ -1,22 +1,24 @@
-using System;
+using Backend.DTO;
 
 namespace Backend.Models;
 
-public class Alarm: IBaseEntity
+public class Alarm : IBaseEntity
 {
-    public Guid Id { get; set; }
-    public AlarmType Type { get; set; }
-    public AlarmPriority Priority { get; set; }
-    public Double EdgeValue { get; set; }
-    public String Unit { get; set; }
-    public AnalogInput AnalogInput { get; set; }
-
     public Alarm()
     {
-            
     }
 
-    public Alarm(Guid id, AlarmType type, AlarmPriority priority, double edgeValue, string unit, AnalogInput analogInput)
+    public Alarm(AlarmDTO alarmDto)
+    {
+        Id = Guid.NewGuid();
+        Type = alarmDto.Type;
+        Priority = alarmDto.Priority;
+        EdgeValue = alarmDto.EdgeValue;
+        Unit = alarmDto.Unit;
+    }
+
+    public Alarm(Guid id, AlarmType type, AlarmPriority priority, double edgeValue, string unit,
+        AnalogInput analogInput)
     {
         Id = id;
         Type = type;
@@ -26,4 +28,10 @@ public class Alarm: IBaseEntity
         AnalogInput = analogInput;
     }
 
+    public AlarmType Type { get; set; }
+    public AlarmPriority Priority { get; set; }
+    public double EdgeValue { get; set; }
+    public string Unit { get; set; }
+    public AnalogInput AnalogInput { get; set; }
+    public Guid Id { get; set; }
 }
