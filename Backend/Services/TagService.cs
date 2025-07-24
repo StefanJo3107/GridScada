@@ -159,13 +159,17 @@ public class TagService(
                    throw new ResourceNotFoundException("User not found!");
         var reports = new TagReport([], []);
         foreach (var analogInput in user.AnalogInputs)
-        {
-            var analogData =
-                await analogDataRepository.FindByTagIdByTime(analogInput.Id, timeFrom, timeTo);
-            reports.AnalogData.AddRange(analogData);
+            if (analogInput != null)
+            {
+                var analogData =
+                    await analogDataRepository.FindByTagIdByTime(analogInput.Id, timeFrom, timeTo);
+                reports.AnalogData.AddRange(analogData);
+            }
 
+        foreach (var digitalInput in user.DigitalInputs)
+        {
             var digitalData =
-                await digitalDataRepository.FindByTagIdByTime(analogInput.Id, timeFrom, timeTo);
+                await digitalDataRepository.FindByTagIdByTime(digitalInput.Id, timeFrom, timeTo);
             reports.DigitalData.AddRange(digitalData);
         }
 
@@ -314,6 +318,66 @@ public class TagService(
                 _ = StartDigitalTagReading(input.Id);
     }
 
+    public async Task StartSimulation()
+    {
+        new Thread(async () =>
+        {
+            Thread.CurrentThread.IsBackground = true;
+            var r = new Random();
+
+            while (true)
+            {
+                List<ITag> devices = [];
+                devices.AddRange((await analogInputRepository.ReadAll()).ToList());
+                devices.AddRange((await digitalInputRepository.ReadAll()).ToList());
+                foreach (var device in devices)
+                {
+                    var isDigital = false;
+                    if (device is DigitalInput)
+                        isDigital = true;
+                    else
+                        isDigital = false;
+
+
+                    if (isDigital)
+                        switch (Global.Simulation)
+                        {
+                            case "SIN":
+                                device.Value = Sine() > 0 ? 1 : 0;
+                                break;
+                            case "COS":
+                                device.Value = Cosine() > 0 ? 1 : 0;
+                                break;
+                            default:
+                                device.Value = Ramp() > 49 ? 1 : 0;
+                                break;
+                        }
+                    else
+                        switch (Global.Simulation)
+                        {
+                            case "SIN":
+                                device.Value = Sine();
+                                break;
+                            case "COS":
+                                device.Value = Cosine();
+                                break;
+                            default:
+                                device.Value = Ramp();
+                                break;
+                        }
+
+
+                    if (isDigital)
+                        await digitalInputRepository.Update((DigitalInput)device);
+                    else
+                        await analogInputRepository.Update((AnalogInput)device);
+                }
+
+                Thread.Sleep(Global.Frequency);
+            }
+        }).Start();
+    }
+
     private async Task UpdatePermissionsAnalogInputs(AnalogInput? input, Guid userId)
     {
         var users = await userRepository.GetAllByCreatedBy(userId);
@@ -444,5 +508,20 @@ public class TagService(
             }
         }).Start();
         return Task.CompletedTask;
+    }
+
+    private double Sine()
+    {
+        return 100 * Math.Sin((double)DateTime.Now.Second / 60 * Math.PI);
+    }
+
+    private double Cosine()
+    {
+        return 100 * Math.Cos((double)DateTime.Now.Second / 60 * Math.PI);
+    }
+
+    private double Ramp()
+    {
+        return 100 * DateTime.Now.Second / 60;
     }
 }

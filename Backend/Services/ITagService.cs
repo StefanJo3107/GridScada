@@ -22,4 +22,5 @@ public interface ITagService
     Task UpdateAnalog(Guid id, double value, Guid userId);
     Task UpdateDigital(Guid id, double value, Guid userId);
     Task StartupCheck();
+    Task StartSimulation();
 }

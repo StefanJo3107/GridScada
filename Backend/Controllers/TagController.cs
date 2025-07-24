@@ -185,4 +185,11 @@ public class TagController(ITagService tagService, IUserService userService) : C
 
         return Forbid("Authentication error!");
     }
+
+    [HttpGet]
+    public async Task<ActionResult> startSimulation()
+    {
+        await _tagService.StartSimulation();
+        return Ok();
+    }
 }
