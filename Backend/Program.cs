@@ -1,4 +1,5 @@
 using Backend.Database;
+using Backend.Hubs;
 using Backend.Infrastructure;
 using Backend.Repositories;
 using Backend.Services;
@@ -23,9 +24,12 @@ builder.Services.AddScoped<IAlarmAlertRepository, AlarmAlertRepository>();
 
 //Services
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<ITagService, TagService>();
+builder.Services.AddSingleton<IAlarmService, AlarmService>();
 
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
+builder.Services.AddHostedService<StartupService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -40,6 +44,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -58,5 +64,7 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 
 app.MapControllers();
+app.MapHub<TagHub>("/hub/tag");
+app.MapHub<AlarmHub>("/hub/alarm");
 
 app.Run();
