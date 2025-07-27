@@ -29,6 +29,7 @@ builder.Services.AddSingleton<IAlarmService, AlarmService>();
 
 //Security
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
+
 builder.Services.AddHostedService<StartupService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
