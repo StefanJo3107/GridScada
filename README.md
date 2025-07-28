@@ -44,3 +44,19 @@ npm start
 
 ## Configuration Files
 - `scadaConfig.xml`: Stores tag and scanning configuration
+
+## Showcase
+|    |    |
+|:-------:|:-------:|
+|<img src="https://i.imgur.com/WG8zxcY.png" width="500">|<img src="https://i.imgur.com/Ma4EXBZ.png" width="500">|
+|**Login**|**Trending**|
+|    |    |
+|<img src="https://i.imgur.com/cw54bCV.png" width="500">|<img src="https://i.imgur.com/BGh5pId.png" width="500">|
+|**Alarms**|**DatabaseManager**|
+|    |    |
+|<img src="https://i.imgur.com/Y3xu62K.png" width="500">|<img src="https://i.imgur.com/LIWIdZN.png" width="500">|
+|**Tag creation**|**Alarm notification**|
+|    |    |
+|<img src="https://i.imgur.com/QKBBkft.png" width="500">|<img src="https://i.imgur.com/YeY5qyg.png" width="500">|
+|**Reports**|**User registration**|
+|    |    |
