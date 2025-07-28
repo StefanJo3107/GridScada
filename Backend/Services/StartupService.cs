@@ -50,7 +50,7 @@ public class StartupService : IHostedService
         }
 
         Thread.Sleep(1000);
-        _ = await _httpClient.GetAsync("http://localhost:5041/api/Device/startSimulation");
-        _ = await _httpClient.GetAsync("http://localhost:5041/api/Tag/startupCheck");
+        _ = await _httpClient.GetAsync("http://localhost:5284/api/Tag/startSimulation");
+        _ = await _httpClient.GetAsync("http://localhost:5284/api/Tag/startupCheck");
     }
 }

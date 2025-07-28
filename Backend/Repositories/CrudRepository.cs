@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Backend.Database;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -15,37 +12,90 @@ public class CrudRepository<T>(DatabaseContext context) : ICrudRepository<T>
 
     public async Task<IEnumerable<T>> ReadAll()
     {
-        return await Entities.ToListAsync();
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            return await Entities.ToListAsync();
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<T?> Read(Guid id)
     {
-        return await Entities.FirstOrDefaultAsync(e => e.Id == id);
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            return await Entities.FirstOrDefaultAsync(e => e.Id.ToString().ToLower().Equals(id.ToString().ToLower()));
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<T> Create(T entity)
     {
-        await Entities.AddAsync(entity);
-        await Context.SaveChangesAsync();
-        return entity;
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            await Entities.AddAsync(entity);
+            await Context.SaveChangesAsync();
+            return entity;
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<T?> Update(T entity)
     {
-        var entityToUpdate = await Entities.FirstOrDefaultAsync(e => e.Id == entity.Id);
-        if (entityToUpdate == null) return entityToUpdate;
-        Context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
-        await Context.SaveChangesAsync();
+        await Global.Semaphore.WaitAsync();
 
-        return entityToUpdate;
+        try
+        {
+            await Task.Delay(1);
+            var entityToUpdate =
+                await Entities.FirstOrDefaultAsync(
+                    e => e.Id.ToString().ToLower().Equals(entity.Id.ToString().ToLower()));
+            if (entityToUpdate == null) return entityToUpdate;
+            Context.Entry(entityToUpdate).CurrentValues.SetValues(entity);
+            await Context.SaveChangesAsync();
+
+            return entityToUpdate;
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<T?> Delete(Guid id)
     {
-        var entityToDelete = await Entities.FirstOrDefaultAsync(e => e.Id == id);
-        if (entityToDelete == null) return entityToDelete;
-        Context.Remove(entityToDelete);
-        await Context.SaveChangesAsync();
-        return entityToDelete;
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            var entityToDelete =
+                await Entities.FirstOrDefaultAsync(e => e.Id.ToString().ToLower().Equals(id.ToString().ToLower()));
+            if (entityToDelete == null) return entityToDelete;
+            Context.Remove(entityToDelete);
+            await Context.SaveChangesAsync();
+            return entityToDelete;
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 }

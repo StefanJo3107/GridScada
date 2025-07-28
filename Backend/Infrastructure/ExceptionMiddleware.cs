@@ -1,12 +1,12 @@
-using System.Net;
 using Backend.Models;
 
 namespace Backend.Infrastructure;
 
 public class ExceptionMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly bool _isDevelopment;
+    private readonly RequestDelegate _next;
+
     public ExceptionMiddleware(RequestDelegate next, bool isDevelopment)
     {
         _next = next;
@@ -27,10 +27,9 @@ public class ExceptionMiddleware
             ExceptionResponse exceptionResponse = new(exception);
             if (_isDevelopment)
                 exceptionResponse.StackTrace = exception.StackTrace;
-
-            HttpStatusCode statusCode = exception.ExceptionToStatusCode();
+            Console.WriteLine(exception.ToString());
+            var statusCode = exception.ExceptionToStatusCode();
             await Utils.WriteJsonToHttpResponseAsync(httpContext.Response, statusCode, exceptionResponse);
         }
-
     }
 }

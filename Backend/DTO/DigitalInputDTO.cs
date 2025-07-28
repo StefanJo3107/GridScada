@@ -2,7 +2,7 @@ namespace Backend.DTO;
 
 public class DigitalInputDTO
 {
-    public DigitalInputDTO(string description, string driver, int scanTime, bool scanOn)
+    public DigitalInputDTO(string description, int scanTime, bool scanOn)
     {
         Description = description;
         ScanTime = scanTime;

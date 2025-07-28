@@ -11,16 +11,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<DatabaseContext>(ServiceLifetime.Transient);
+builder.Services.AddSingleton<DatabaseContext>();
 
 //Repositories
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IAnalogInputRepository, AnalogInputRepository>();
-builder.Services.AddScoped<IDigitalInputRepository, DigitalInputRepository>();
-builder.Services.AddScoped<IDigitalDataRepository, DigitalDataRepository>();
-builder.Services.AddScoped<IAnalogDataRepository, AnalogDataRepository>();
-builder.Services.AddScoped<IAlarmRepository, AlarmRepository>();
-builder.Services.AddScoped<IAlarmAlertRepository, AlarmAlertRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IAnalogInputRepository, AnalogInputRepository>();
+builder.Services.AddSingleton<IDigitalInputRepository, DigitalInputRepository>();
+builder.Services.AddSingleton<IDigitalDataRepository, DigitalDataRepository>();
+builder.Services.AddSingleton<IAnalogDataRepository, AnalogDataRepository>();
+builder.Services.AddSingleton<IAlarmRepository, AlarmRepository>();
+builder.Services.AddSingleton<IAlarmAlertRepository, AlarmAlertRepository>();
 
 //Services
 builder.Services.AddSingleton<IUserService, UserService>();
@@ -31,6 +31,18 @@ builder.Services.AddSingleton<IAlarmService, AlarmService>();
 builder.Services.AddTransient<CustomCookieAuthenticationEvents>();
 
 builder.Services.AddHostedService<StartupService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -57,7 +69,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
+app.UseCors("AllowReactApp");
 app.UseMiddleware<ExceptionMiddleware>(true);
 app.UseAuthentication();
 app.UseAuthorization();

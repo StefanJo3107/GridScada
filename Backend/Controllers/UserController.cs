@@ -5,8 +5,8 @@ using Backend.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Backend.Controllers;
 
@@ -15,36 +15,37 @@ namespace Backend.Controllers;
 public class UserController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;
-    
+
     [HttpPost]
     public async Task<ActionResult> login([FromBody] UserLoginDTO userLoginDto)
     {
-        User userToAuthenticate = new User();
+        var userToAuthenticate = new User();
         userToAuthenticate.Email = userLoginDto.Email;
         userToAuthenticate.Password = userLoginDto.Password;
-        User? authenticatedUser = await _userService.Authenticate(userToAuthenticate);
+        var authenticatedUser = await _userService.Authenticate(userToAuthenticate);
 
-        ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
+        var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
         identity.AddClaim(new Claim(ClaimTypes.Role, authenticatedUser?.Role ?? string.Empty));
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, authenticatedUser?.Id.ToString() ?? string.Empty));
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
         return Ok("Logged in successfully!");
     }
-    
+
     [HttpPost]
-    [Authorize(Roles =("Admin"))]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> register([FromBody] UserDTO userDto)
     {
-        AuthenticateResult result = await HttpContext.AuthenticateAsync();
+        var result = await HttpContext.AuthenticateAsync();
         if (result.Succeeded)
         {
-            ClaimsIdentity? identity = result.Principal.Identity as ClaimsIdentity;
-            string? userId = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            User user = new User(userDto.Name, userDto.Surname, userDto.Email, userDto.Password, "User",await _userService.Get(Guid.Parse(userId)));
+            var identity = result.Principal.Identity as ClaimsIdentity;
+            var userId = identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = new User(userDto.Name, userDto.Surname, userDto.Email, userDto.Password, "User",
+                await _userService.Get(Guid.Parse(userId)));
             await _userService.CreateUser(user);
             return Ok("Registration successful!");
         }
-        
+
         return Forbid("Authentication error!");
     }
 
@@ -54,5 +55,16 @@ public class UserController(IUserService userService) : ControllerBase
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return Ok("Logged out successfully!");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<ActionResult<string>> whoAmI()
+    {
+        var result = await HttpContext.AuthenticateAsync();
+        if (!result.Succeeded) return BadRequest("Cookie error");
+        var identity = result.Principal.Identity as ClaimsIdentity;
+        var role = identity?.FindFirst(ClaimTypes.Role)?.Value;
+        return Ok(JsonConvert.SerializeObject(new { role }, Formatting.Indented));
     }
 }

@@ -18,6 +18,7 @@ export const AuthProvider = ({ children } : any) => {
         axios.get(environment + `/api/User/whoAmI`)
             .then(res => {
                 if (res.status === 200){
+                    console.log(res);
                     setIsAuthenticated(true);
                     setRole(res.data.role);
                 }

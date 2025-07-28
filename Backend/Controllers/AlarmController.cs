@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Backend.DTO;
-using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +31,7 @@ public class AlarmController : ControllerBase
             var identity = result.Principal.Identity as ClaimsIdentity;
             var userId = identity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            await _alarmService.MakeAlarm(Guid.Parse(userId), new Alarm(alarmDto));
+            await _alarmService.MakeAlarm(Guid.Parse(userId), alarmDto);
 
 
             return Ok("Successfully created alarm!");

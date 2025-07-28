@@ -75,7 +75,7 @@ public class TagService(
                    throw new ResourceNotFoundException("User not found!");
         var analogInput = await analogInputRepository.Read(tagId) ??
                           throw new ResourceNotFoundException("There is no analog tag with this id!");
-        if (user.AnalogInputs.All(tag => tag.Id != tagId))
+        if (user.AnalogInputs.All(tag => !tag.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
         analogInput.ScanOn = !analogInput.ScanOn;
         await analogInputRepository.Update(analogInput);
@@ -89,7 +89,7 @@ public class TagService(
                    throw new ResourceNotFoundException("User not found!");
         var digitalInput = await digitalInputRepository.Read(tagId) ??
                            throw new ResourceNotFoundException("There is no digital tag with this id!");
-        if (user.DigitalInputs.All(tag => tag.Id != tagId))
+        if (user.DigitalInputs.All(tag => !tag.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
         digitalInput.ScanOn = !digitalInput.ScanOn;
         await digitalInputRepository.Update(digitalInput);
@@ -107,7 +107,8 @@ public class TagService(
         if (tag == null)
             throw new InvalidInputException("Tag does not exist");
 
-        if (!user.AnalogInputs.Any(input => input != null && input.Id == tagId))
+        if (!user.AnalogInputs.Any(input =>
+                input != null && !input.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new ResourceNotFoundException("Tag does net exist");
 
         user.AnalogInputs.Remove(tag);
@@ -138,7 +139,7 @@ public class TagService(
         if (tag == null)
             throw new InvalidInputException("Tag does not exist");
 
-        if (user.DigitalInputs.All(input => input.Id != tagId))
+        if (user.DigitalInputs.All(input => !input.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new ResourceNotFoundException("Tag does not exist");
 
         user.DigitalInputs.Remove(tag);
@@ -210,7 +211,7 @@ public class TagService(
                    throw new ResourceNotFoundException("User not found!");
         var analogInput = await analogInputRepository.Read(tagId) ??
                           throw new ResourceNotFoundException("There is no analog tag with this id!");
-        if (user.AnalogInputs.All(tag => tag.Id != tagId))
+        if (user.AnalogInputs.All(tag => !tag.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
 
         return await analogDataRepository.FindByTagId(tagId);
@@ -222,7 +223,7 @@ public class TagService(
                    throw new ResourceNotFoundException("User not found!");
         var digitalInput = await digitalInputRepository.Read(tagId) ??
                            throw new ResourceNotFoundException("There is no digital tag with this id!");
-        if (user.DigitalInputs.All(tag => tag.Id != tagId))
+        if (user.DigitalInputs.All(tag => !tag.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
 
         return await digitalDataRepository.FindByTagId(tagId);
@@ -238,7 +239,7 @@ public class TagService(
         if (tag == null)
             throw new InvalidInputException("Tag does not exist");
 
-        if (user.AnalogInputs.All(input => input.Id != tagId))
+        if (user.AnalogInputs.All(input => !input.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new ResourceNotFoundException("Tag does net exist");
 
         return tag;
@@ -254,7 +255,8 @@ public class TagService(
         if (tag == null)
             throw new InvalidInputException("Tag does not exist");
 
-        if (user.AnalogInputs.All(input => input != null && input.Id != tagId))
+        if (user.AnalogInputs.All(input =>
+                input != null && !input.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new ResourceNotFoundException("Tag does not exist");
 
         return tag;
@@ -340,19 +342,22 @@ public class TagService(
 
 
                     if (isDigital)
+                    {
                         switch (Global.Simulation)
                         {
                             case "SIN":
-                                device.Value = Sine() > 0 ? 1 : 0;
+                                device.Value = Sine() > 49 ? 1 : 0;
                                 break;
                             case "COS":
-                                device.Value = Cosine() > 0 ? 1 : 0;
+                                device.Value = Cosine() > 49 ? 1 : 0;
                                 break;
                             default:
                                 device.Value = Ramp() > 49 ? 1 : 0;
                                 break;
                         }
+                    }
                     else
+                    {
                         switch (Global.Simulation)
                         {
                             case "SIN":
@@ -366,6 +371,9 @@ public class TagService(
                                 break;
                         }
 
+                        device.Value = MapRange(device.Value, 0, 100, (device as AnalogInput).LowLimit,
+                            (device as AnalogInput).HighLimit);
+                    }
 
                     if (isDigital)
                         await digitalInputRepository.Update((DigitalInput)device);
@@ -376,6 +384,11 @@ public class TagService(
                 Thread.Sleep(Global.Frequency);
             }
         }).Start();
+    }
+
+    public static double MapRange(double value, double fromMin, double fromMax, double toMin, double toMax)
+    {
+        return (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
     }
 
     private async Task UpdatePermissionsAnalogInputs(AnalogInput? input, Guid userId)
@@ -405,10 +418,6 @@ public class TagService(
             Thread.CurrentThread.IsBackground = true;
             while (true)
             {
-                using var scope = serviceProvider.CreateScope();
-                var analogInputRepository = scope.ServiceProvider.GetRequiredService<IAnalogInputRepository>();
-                var analogDataRepository = scope.ServiceProvider.GetRequiredService<IAnalogDataRepository>();
-                var alarmAlertRepository = scope.ServiceProvider.GetRequiredService<IAlarmAlertRepository>();
                 var analogInput = await analogInputRepository.FindByIdWithAlarmsAndUsers(tagId);
                 if (analogInput == null)
                     break;
@@ -477,10 +486,6 @@ public class TagService(
             Thread.CurrentThread.IsBackground = true;
             while (true)
             {
-                using var scope = serviceProvider.CreateScope();
-                var digitalInputRepository = scope.ServiceProvider.GetRequiredService<IDigitalInputRepository>();
-                var digitalDataRepository = scope.ServiceProvider.GetRequiredService<IDigitalDataRepository>();
-
                 var digitalInput = await digitalInputRepository.FindByIdWithUsers(tagId);
                 if (digitalInput == null)
                     break;

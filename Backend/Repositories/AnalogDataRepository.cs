@@ -8,30 +8,75 @@ public class AnalogDataRepository(DatabaseContext context) : CrudRepository<Anal
 {
     public async Task<List<AnalogData>> FindByTagId(Guid id)
     {
-        return await Entities
-            .Where(e => e.AnalogInput.Id == id).ToListAsync();
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            return await Entities
+                .Where(e => e.AnalogInput.Id.ToString().ToLower().Equals(id.ToString().ToLower())).ToListAsync();
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<List<AnalogData>> FindByTagIdByTime(Guid id, DateTime from, DateTime to)
     {
-        return await Entities
-            .Where(e => e.AnalogInput.Id == id && e.Timestamp >= from && e.Timestamp <= to)
-            .ToListAsync();
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+
+            return await Entities
+                .Where(e => e.AnalogInput.Id.ToString().ToLower().Equals(id.ToString().ToLower()) &&
+                            e.Timestamp >= from &&
+                            e.Timestamp <= to)
+                .ToListAsync();
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task<AnalogData?> FindLatestByTagId(Guid id)
     {
-        return await Entities.OrderByDescending(e => e.Timestamp)
-            .Where(e => e.AnalogInput.Id == id).FirstOrDefaultAsync();
+        await Global.Semaphore.WaitAsync();
+
+        try
+        {
+            await Task.Delay(1);
+            return await Entities.OrderByDescending(e => e.Timestamp)
+                .Where(e => e.AnalogInput.Id.ToString().ToLower().Equals(id.ToString().ToLower()))
+                .FirstOrDefaultAsync();
+        }
+        finally
+        {
+            Global.Semaphore.Release();
+        }
     }
 
     public async Task DeleteByTagId(Guid id)
     {
-        var entities = await Entities.Where(e => e.AnalogInput.Id == id).ToListAsync();
-        if (entities.Count > 0)
+        await Global.Semaphore.WaitAsync();
+
+        try
         {
-            Entities.RemoveRange(entities);
-            await Context.SaveChangesAsync();
+            await Task.Delay(1);
+            var entities = await Entities
+                .Where(e => e.AnalogInput.Id.ToString().ToLower().Equals(id.ToString().ToLower())).ToListAsync();
+            if (entities.Count > 0)
+            {
+                Entities.RemoveRange(entities);
+                await Context.SaveChangesAsync();
+            }
+        }
+        finally
+        {
+            Global.Semaphore.Release();
         }
     }
 }

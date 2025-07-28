@@ -1,3 +1,4 @@
+using Backend.DTO;
 using Backend.Exceptions;
 using Backend.Models;
 using Backend.Repositories;
@@ -11,19 +12,20 @@ public class AlarmService(
     IAlarmAlertRepository alarmAlertRepository)
     : IAlarmService
 {
-    public async Task MakeAlarm(Guid userId, Alarm alarm)
+    public async Task MakeAlarm(Guid userId, AlarmDTO alarm)
     {
         var user = await userRepository.FindByIdWithTags(userId) ??
                    throw new ResourceNotFoundException("User not found!");
-        var analogInput = await analogInputRepository.FindByIdWithAlarmsAndUsers(alarm.AnalogInput.Id) ??
+        var analogInput = await analogInputRepository.FindByIdWithAlarmsAndUsers(alarm.TagId) ??
                           throw new ResourceNotFoundException("There is no analog tag with this id!");
-        if (user.AnalogInputs.All(tag => tag.Id != alarm.AnalogInput.Id))
+        if (user.AnalogInputs.All(tag =>
+                !tag.Id.ToString().ToLower().Equals(alarm.TagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
 
-
-        analogInput.Alarms.Add(alarm);
-        alarm.AnalogInput = analogInput;
-        await alarmRepository.Update(alarm);
+        var newAlarm = new Alarm(Guid.NewGuid(), alarm.Type, alarm.Priority, alarm.EdgeValue, alarm.Unit,
+            analogInput);
+        analogInput.Alarms.Add(newAlarm);
+        await alarmRepository.Create(newAlarm);
         await analogInputRepository.Update(analogInput);
     }
 
@@ -33,11 +35,13 @@ public class AlarmService(
                    throw new ResourceNotFoundException("User not found!");
         var analogInput = await analogInputRepository.FindByIdWithAlarmsAndUsers(tagId) ??
                           throw new ResourceNotFoundException("There is no analog tag with this id!");
-        if (user.AnalogInputs.All(tag => tag != null && tag.Id != tagId))
+        if (user.AnalogInputs.All(tag =>
+                tag != null && !tag.Id.ToString().ToLower().Equals(tagId.ToString().ToLower())))
             throw new InvalidInputException("User cannot access other users tags!");
 
         await alarmAlertRepository.DeleteByAlarmId(alarmId);
-        analogInput.Alarms = analogInput.Alarms.Where(alarm => alarm.Id != alarmId).ToList();
+        analogInput.Alarms = analogInput.Alarms
+            .Where(alarm => !alarm.Id.ToString().ToLower().Equals(alarmId.ToString().ToLower())).ToList();
         await analogInputRepository.Update(analogInput);
         await alarmRepository.Delete(alarmId);
     }
@@ -75,10 +79,11 @@ public class AlarmService(
             if (analogInputAlarm.Priority != priority) continue;
             var alarmAlerts =
                 await alarmAlertRepository.FindByAlarmId(analogInputAlarm.Id);
-            List<AlarmReport> alarmReportsDtos = alarmAlerts.Select(item => new AlarmReport
+            var alarmReportsDtos = alarmAlerts.Select(item => new AlarmReport
             {
                 Alarm = analogInputAlarm,
-                Timestamp = item.Timestamp
+                Timestamp = item.Timestamp,
+                Value = item.Value
             }).ToList();
             alarmReports.AddRange(alarmReportsDtos);
         }
